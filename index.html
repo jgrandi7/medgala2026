@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Med Gala Check-In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; text-align: center; padding: 30px; }
+    input, button {
+      font-size: 18px;
+      padding: 12px;
+      margin: 10px;
+      width: 85%;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .warning { color: orange; }
+  </style>
+</head>
+<body>
+
+<h2>🎟️ Med Gala Check-In</h2>
+
+<input id="first" placeholder="First Name">
+<input id="last" placeholder="Last Name">
+<button onclick="checkIn()">Check In</button>
+
+<p id="message"></p>
+
+<script>
+const API_URL = "PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE";
+
+function checkIn() {
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      first_name: document.getElementById("first").value,
+      last_name: document.getElementById("last").value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const msg = document.getElementById("message");
+    msg.textContent = data.message;
+    msg.className = data.status;
+  });
+}
+</script>
+
+</body>
+</html>
