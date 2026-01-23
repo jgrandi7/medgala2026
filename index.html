@@ -139,4 +139,41 @@ function checkIn() {
   .then(res => res.json())
   .then(data => showResult(data))
   .catch(() => {
-    showResult(
+    showResult({status:"error", message:"Network error. Please try again."});
+  });
+}
+
+function showResult(data) {
+  document.body.className = data.status;
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("result").style.display = "flex";
+
+  const icon = document.getElementById("icon");
+  const message = document.getElementById("message");
+
+  if (data.status === "success") {
+    icon.textContent = "✔️";
+  } else if (data.status === "warning") {
+    icon.textContent = "⚠️";
+  } else {
+    icon.textContent = "❌";
+  }
+
+  message.textContent = data.message;
+}
+
+function resetScreen() {
+  locked = false;
+  document.body.className = "";
+
+  document.getElementById("result").style.display = "none";
+  document.getElementById("container").style.display = "flex";
+
+  document.getElementById("first").value = "";
+  document.getElementById("last").value = "";
+}
+</script>
+
+</body>
+</html>
