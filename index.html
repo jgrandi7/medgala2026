@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Med Gala 2026 Check-In</title>
+  <title>Med Gala Check-In</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -16,10 +16,17 @@
     body.error { background-color: #e74c3c; color: white; }
     body.warning { background-color: #f39c12; color: white; }
 
-    #container {
-      padding: 40px 20px;
-      max-width: 400px;
-      margin: auto;
+    #container, #loading, #result {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #loading, #result {
+      display: none;
     }
 
     input, button {
@@ -27,22 +34,12 @@
       padding: 12px;
       margin: 10px;
       width: 90%;
+      max-width: 400px;
       border-radius: 6px;
       border: none;
     }
 
-    button {
-      cursor: pointer;
-    }
-
-    #result {
-      display: none;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
+    button { cursor: pointer; }
 
     .icon {
       font-size: 120px;
@@ -55,36 +52,65 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid rgba(255,255,255,0.3);
+      border-top: 6px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     .message {
       font-size: 28px;
       margin: 20px;
+      max-width: 90%;
     }
 
     .reset-btn {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.95);
       color: #333;
       font-size: 18px;
-      padding: 12px 20px;
+      padding: 12px 24px;
       border-radius: 8px;
       margin-top: 30px;
       width: auto;
+    }
+
+    .subtext {
+      font-size: 18px;
+      opacity: 0.85;
     }
   </style>
 </head>
 <body>
 
+<!-- FORM SCREEN -->
 <div id="container">
-  <h2>🎟️ Med Gala 2026 Check-In</h2>
+  <h2>🎟️ Med Gala Check-In</h2>
 
   <input id="first" placeholder="First Name">
   <input id="last" placeholder="Last Name">
-  <button onclick="checkIn()">Check In</button>
+  <button id="checkinBtn" onclick="checkIn()">Check In</button>
 
   <p style="opacity:0.8; font-size:14px;">
-    Please enter the same name used on your ticket purchase
+    Please enter the name on your invitation
   </p>
 </div>
 
+<!-- LOADING SCREEN -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="subtext">Checking you in...</div>
+</div>
+
+<!-- RESULT SCREEN -->
 <div id="result">
   <div id="icon" class="icon"></div>
   <div id="message" class="message"></div>
@@ -92,9 +118,17 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzslTF3MVG-MUeHhHQgx_-qqMNC5bvdIkqZ3XaUhmI8wIHTZ4ITibNeZztXg2L7kbmeBw/exec";
+const API_URL = "PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE";
+let locked = false;
 
 function checkIn() {
+  if (locked) return; // prevent double click
+  locked = true;
+
+  // Switch to loading screen immediately
+  document.getElementById("container").style.display = "none";
+  document.getElementById("loading").style.display = "flex";
+
   fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({
@@ -103,38 +137,6 @@ function checkIn() {
     })
   })
   .then(res => res.json())
-  .then(data => showResult(data));
-}
-
-function showResult(data) {
-  document.body.className = data.status;
-
-  document.getElementById("container").style.display = "none";
-  document.getElementById("result").style.display = "flex";
-
-  const icon = document.getElementById("icon");
-  const message = document.getElementById("message");
-
-  if (data.status === "success") {
-    icon.textContent = "✔️";
-  } else if (data.status === "warning") {
-    icon.textContent = "⚠️";
-  } else {
-    icon.textContent = "❌";
-  }
-
-  message.textContent = data.message;
-}
-
-function resetScreen() {
-  document.body.className = "";
-  document.getElementById("container").style.display = "block";
-  document.getElementById("result").style.display = "none";
-
-  document.getElementById("first").value = "";
-  document.getElementById("last").value = "";
-}
-</script>
-
-</body>
-</html>
+  .then(data => showResult(data))
+  .catch(() => {
+    showResult(
